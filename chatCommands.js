@@ -206,7 +206,7 @@ function commandNameToString(command) {
         formattedArgNames.push(argNameToString(arg));
     }
 
-    return [command, ...formattedArgNames].join(" ");
+    return [command.command, ...formattedArgNames].join(" ");
 }
 
 function argNameToString(arg) {
