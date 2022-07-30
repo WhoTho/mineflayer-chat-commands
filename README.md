@@ -13,21 +13,25 @@ Default is "#"
 #### configs.whitelist
 
 Default is []
+
 List of usernames that are allowed to run commands
 
 #### configs.blacklist
 
 Default is []
+
 List of usernames that are not allowed to run commands
 
 #### configs.useDefaultErrorHandlers
 
 Default is true
+
 If false, the errors from `runCommand` will be thrown to the main program
 
 #### configs.allowBotResponse
 
 Default is true
+
 Wether or not the chatCommand module will be allowed to call `bot.chat()` for internal info logging
 
 ### allCommands
@@ -41,19 +45,23 @@ Takes in a command and adds it to allCommands
 ### addCommands([commands](#create-a-command))
 
 Commands: List of commands
+
 Adds the commands to allCommands
 
 ### runCommand(username, message)
 
 Username: Name of the player who called the command
+
 Message: Chat message
 
 Tries to run the message as a command.
+
 Throws unknownCommandError
 
 ### getCommand(commandName)
 
 commandName: String
+
 Finds and returns the command by the command name
 
 ### commandNameToString(command)
@@ -132,11 +140,13 @@ Wether or not the argument is optional
 ### isRest
 
 Wether or not the argument is a rest argument
+
 Takes the rest of the arguments as a list
 
 ### testValid
 
 Function to run on the user inputted argument to check if it is valid
+
 If the function returns false or errors, the argument throws a InvalidArgError
 
 ---
