@@ -8,29 +8,46 @@
 
 #### configs.prefix
 
-Default is "#"
+Default: "#"
+
+#### configs.chatPrefix
+
+Default: ""
+Chat prefix that the bot uses when chatting
+
+Ex.
+
+```js
+configs.chatPrefix = "/whisper USERNAME";
+
+/*
+Any bot.chat() that the chatCommand module calls will be
+prefixed with '/whisper USERNAME', letting you keep errors
+and such to yourself
+*/
+```
 
 #### configs.whitelist
 
-Default is []
+Default: []
 
 List of usernames that are allowed to run commands
 
 #### configs.blacklist
 
-Default is []
+Default: []
 
 List of usernames that are not allowed to run commands
 
 #### configs.useDefaultErrorHandlers
 
-Default is true
+Default: true
 
 If false, the errors from `runCommand` will be thrown to the main program
 
 #### configs.allowBotResponse
 
-Default is true
+Default: true
 
 Wether or not the chatCommand module will be allowed to call `bot.chat()` for internal info logging
 
@@ -98,13 +115,42 @@ console.log(argName); // -> "[username]"
 
 Name of the command
 
+Ex.
+
+```js
+{
+    command: "fight",
+}
+```
+
 ### description
 
 Description of the command
 
+Ex.
+
+```js
+{
+    description: "Makes the bot fight a specified player or the closest one";
+}
+```
+
 ### args
 
 See [writing an arg](#create-an-arg)
+
+Ex.
+
+```js
+{
+    args: [
+        {
+            arg: "username",
+            optional: true,
+        },
+    ],
+}
+```
 
 ### code
 
@@ -113,12 +159,14 @@ The code that is run on command call
 Ex.
 
 ```js
-(arg1, arg2) => {
-    console.log("The first argument is", arg1);
-    if (arg2 === "test") {
-        console.log("The second argument was 'test'");
-    }
-};
+{
+    code: (arg1, arg2) => {
+        console.log("The first argument is", arg1);
+        if (arg2 === "test") {
+            console.log("The second argument was 'test'");
+        }
+    },
+}
 ```
 
 ---
@@ -129,25 +177,75 @@ Ex.
 
 Name of the argument
 
+Ex.
+
+```js
+{
+    arg: "username",
+}
+```
+
 ### description
+
+Default: "No description"
 
 Description of the argument
 
+Ex.
+
+```js
+{
+    description: "Username of the player",
+}
+```
+
 ### optional
+
+Default: false
 
 Wether or not the argument is optional
 
+Ex.
+
+```js
+{
+    optional: true,
+}
+```
+
 ### isRest
+
+Default: false
 
 Wether or not the argument is a rest argument
 
 Takes the rest of the arguments as a list
 
+Ex.
+
+```js
+{
+    isRest: true;
+}
+```
+
 ### testValid
+
+Default `() => true`
 
 Function to run on the user inputted argument to check if it is valid
 
 If the function returns false or errors, the argument throws a InvalidArgError
+
+Ex.
+
+```js
+
+{
+    testValid: (username) => Object.keys(bot.players).includes(username),
+}
+
+```
 
 ---
 
@@ -194,7 +292,7 @@ chatCommands.addCommands([
                 testValid: (username) => Object.keys(bot.players).includes(username),
             },
         ],
-        code: (username) => {
+        code: (username = null) => {
             if (username) bot.pvp.attack(bot.players[username].entity);
             else bot.pvp.attack(bot.nearestEntity());
         },
