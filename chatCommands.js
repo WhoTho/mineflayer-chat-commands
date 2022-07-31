@@ -3,7 +3,6 @@ Created by @WhoTho#9592
 
 TODO:
     add custom errors for args
-    rewrite everything to work with new structure
 */
 
 // +------------------------------+
@@ -23,6 +22,7 @@ var bot;
 var allCommands = [];
 var configs = {
     prefix: "#",
+    chatPrefix: "",
     whitelist: [],
     blacklist: [],
     useDefaultErrorHandlers: true,
@@ -187,7 +187,7 @@ function _setArgNumbers(command) {
 // +------------------------------+
 
 function botChat(message) {
-    if (configs.allowBotResponse) bot.chat(message);
+    if (configs.allowBotResponse) bot.chat(configs.chatPrefix + message);
     else console.log("Bot message:", message);
 }
 
@@ -277,8 +277,10 @@ function _runCommand(username, message) {
         command: command,
     };
 
+    // Throws a NotEnoughArgsError if the command does not have more enough arguments.
     if (parsedArgs.length < command._argInfo.required) throw new NotEnoughArgsError(errorInfo);
 
+    // Throws TooManyArgsError if the command has more arguments than possible.
     if (!command._argInfo.hasRest && parsedArgs.length > command._argInfo.required + command._argInfo.optional)
         throw new TooManyArgsError(errorInfo);
 
@@ -298,10 +300,11 @@ function _runCommand(username, message) {
         if (commandArgIndex < command.args.length) commandArgIndex++;
     }
 
+    // Tries to run the command.
     try {
         command.code(...parsedArgs);
     } catch (err) {
-        errorInfo.error = err;
+        errorInfo.actualError = err;
         throw new RuntimeError(errorInfo);
     }
 }
@@ -312,12 +315,13 @@ function runCommand(username, message) {
     } catch (err) {
         if (!configs.useDefaultErrorHandlers) throw err;
 
-        // ADD DEFAULT HANDLERS
+        // default error handlers
         switch (err.constructor) {
             case UnknownCommandError:
                 console.log(`Unknown command: '${err.rawMessage}' by '${err.username}`);
                 botChat(`Unknown command. Try '${configs.prefix}help' for a list of commands`);
                 break;
+
             case NotEnoughArgsError:
                 console.log(
                     `Invalid number of args for '${err.command.command}'. Found ${err.parsedArgs.length}, expected at least ${err.command._argInfo.required}`
@@ -325,6 +329,7 @@ function runCommand(username, message) {
 
                 botChat(`Not enough args for command '${err.command.command}'`);
                 break;
+
             case TooManyArgsError:
                 console.log(
                     `Invalid number of args for '${err.command.command}'. Found ${
@@ -334,16 +339,19 @@ function runCommand(username, message) {
 
                 botChat(`Too many args for command '${err.command.command}'`);
                 break;
+
             case InvalidArgError:
                 console.log(`Invalid arg '${err.arg}' for command '${err.command.command}'`);
                 if (err.actualError) console.log(err.actualError);
 
                 botChat(`Invalid arg '${err.arg}'`);
                 break;
+
             case RuntimeError:
                 console.log(`Error while running command '${err.command.command}'`);
                 console.log(err.actualError);
                 break;
+
             default:
                 console.log("Unknown error while dealing with runCommand error");
                 console.log(err);
@@ -361,13 +369,17 @@ function _addDefaultCommands() {
         {
             command: "help",
             description: "Displays the help message",
-            code: () => {
-                var commandNameStrings = [];
-                for (const command of allCommands) {
-                    const commandNameString = commandNameToString(command);
-                    commandNameStrings.push(`'${commandNameString}'`);
-
-                    console.log(`Command: ${commandNameString}`);
+            args: [
+                {
+                    arg: "command",
+                    description: "Name of the command you want info on",
+                    optional: true,
+                    testValid: (commandName) => typeof getCommand(commandName) !== "undefined",
+                },
+            ],
+            code: (commandName = null) => {
+                function logCommandInfo(command) {
+                    console.log(`Command: ${commandNameToString(command)}`);
                     console.log(`Description: ${command.description}`);
 
                     for (const arg of command.args) {
@@ -377,6 +389,22 @@ function _addDefaultCommands() {
                     }
 
                     console.log("\n-----------------");
+                }
+
+                // Logs the command info if it is provided
+                if (commandName) {
+                    const command = getCommand(commandName);
+                    logCommandInfo(command);
+
+                    botChat(`Command: '${commandNameToString(command)}'`);
+                    botChat(`Description: ${command.description}`);
+                    return;
+                }
+
+                var commandNameStrings = [];
+                for (const command of allCommands) {
+                    commandNameStrings.push(`'${commandNameToString(command)}'`);
+                    logCommandInfo(command);
                 }
 
                 botChat(`Commands: ${commandNameStrings.join(", ")}`);
