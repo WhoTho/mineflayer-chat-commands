@@ -123,6 +123,18 @@ Ex.
 }
 ```
 
+### aliases
+
+Aliases for the command
+
+Ex.
+
+```js
+{
+    aliases: ["f", "kill"],
+}
+```
+
 ### description
 
 Description of the command
@@ -266,6 +278,7 @@ chatCommands.prefix = ".";
 
 chatCommands.addCommand({
     command: "help",
+    aliases: ["h"],
     description: "Runs the help command",
     code: () => {
         console.log("Check console for more information");
@@ -284,6 +297,7 @@ chatCommands.addCommands([
     },
     {
         command: "fight",
+        aliases: ["f", "kill"],
         description: "Starts the pvp bot against a user or the nearest entity",
         args: [
             {

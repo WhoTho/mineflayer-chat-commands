@@ -1,8 +1,8 @@
 /*
 Created by @WhoTho#9592
 
-TODO:
-    add custom errors for args
+TODO add custom errors for args
+FIXME test the example code
 */
 
 // +------------------------------+
@@ -17,6 +17,8 @@ const {
     RuntimeError,
     StructureError,
 } = require("./chatCommandErrors.js");
+
+const { formatStringArray } = require("./utils.js");
 
 var bot;
 var allCommands = [];
@@ -45,6 +47,20 @@ const _COMMAND_STRUCTURE = {
     command: {
         optional: false,
         testValid: (command) => _testType({ command }, "string", "Command name"),
+    },
+    aliases: {
+        optional: true,
+        defaultValue: [],
+        testValid: (aliases) => {
+            _testType({ aliases }, "object", "Command aliases");
+
+            if (!Array.isArray(aliases))
+                throw new StructureError(`Command aliases expected type array, received type object'`);
+
+            for (const alias of aliases) {
+                _testType({ alias }, "string", "Command alias");
+            }
+        },
     },
     args: {
         optional: true,
@@ -105,12 +121,20 @@ function _testType(valueObj, expectedType, description = "Value") {
     // Test if a value is of the expected type
     // Pass in value as a object { myVar } in order to get the var name
 
+    // Makes expectedType a list
+    if (typeof expectedType === "string") {
+        expectedType = [expectedType];
+    }
+
     const varName = Object.keys(valueObj)[0];
     const valueType = typeof valueObj[varName];
 
-    if (valueType !== expectedType) {
+    if (!expectedType.includes(valueType)) {
         throw new StructureError(
-            `${description} '${varName}' expected type ${expectedType}, received type ${valueType}'`
+            `${description} '${varName}' expected type(s) ${formatStringArray(
+                expectedType,
+                "or"
+            )}, received type ${valueType}`
         );
     }
 }
@@ -188,12 +212,12 @@ function _setArgNumbers(command) {
 
 function botChat(message) {
     if (configs.allowBotResponse) bot.chat(configs.chatPrefix + message);
-    else console.log("Bot message:", message);
+    else console.log("Bot chat:", message);
 }
 
 function getCommand(commandName) {
     for (const command of allCommands) {
-        if (commandName === command.command) {
+        if (command.command === commandName || command.aliases.includes(commandName)) {
             return command;
         }
     }
@@ -237,10 +261,28 @@ function addCommand(command) {
 
     _setArgNumbers(command);
 
-    // Check if a command already exists.
-    if (getCommand(command.name)) {
-        console.log(`Command '${command.name}' already exists. Overriding...`);
-        allCommands = allCommands.filter((otherCommand) => otherCommand.name !== command.name);
+    // Check if a command name or aliases already exist
+    const allCommandNames = command.aliases.concat(command.command);
+    const duplicateCommands = [
+        ...new Set(allCommandNames.map((commandName) => getCommand(commandName)).filter(Boolean)),
+    ]; // TODO: Improve this line
+
+    if (duplicateCommands.length) {
+        // Find common names
+        const duplicateCommandNames = duplicateCommands.map((duplicateCommand) => duplicateCommand.command);
+        const allDuplicateCommandNames = [].concat(
+            ...duplicateCommands.map((duplicateCommand) => duplicateCommand.aliases.concat(duplicateCommand.command))
+        ); // TODO: Improve this line
+        const commonNames = allCommandNames.filter((commandName) => allDuplicateCommandNames.includes(commandName));
+
+        const formattedCommonNames = formatStringArray(commandName);
+        const formattedDuplicateCommandNames = formatStringArray(duplicateCommandNames);
+
+        console.log(
+            `Command '${command.command}' has a naming conflict with ${formattedDuplicateCommandNames} (${formattedCommonNames}). Overwriting...`
+        );
+
+        allCommands = allCommands.filter((otherCommand) => !duplicateCommandNames.includes(otherCommand.command));
     }
 
     allCommands.push(command);
@@ -318,7 +360,7 @@ function runCommand(username, message) {
         // default error handlers
         switch (err.constructor) {
             case UnknownCommandError:
-                console.log(`Unknown command: '${err.rawMessage}' by '${err.username}`);
+                console.log(`Unknown command: '${err.rawMessage}' by '${err.username}'`);
                 botChat(`Unknown command. Try '${configs.prefix}help' for a list of commands`);
                 break;
 
@@ -368,6 +410,7 @@ function _addDefaultCommands() {
     addCommands([
         {
             command: "help",
+            aliases: ["h"],
             description: "Displays the help message",
             args: [
                 {
@@ -379,7 +422,9 @@ function _addDefaultCommands() {
             ],
             code: (commandName = null) => {
                 function logCommandInfo(command) {
+                    console.log();
                     console.log(`Command: ${commandNameToString(command)}`);
+                    if (command.aliases.length) console.log(`Aliases: ${formatStringArray(command.aliases)}`);
                     console.log(`Description: ${command.description}`);
 
                     for (const arg of command.args) {
@@ -407,12 +452,13 @@ function _addDefaultCommands() {
                     logCommandInfo(command);
                 }
 
-                botChat(`Commands: ${commandNameStrings.join(", ")}`);
+                botChat(`Commands: ${formatStringArray(commandNameStrings)}`);
                 botChat("More info displayed in console");
             },
         },
         {
             command: "quit",
+            aliases: ["exit"],
             description: "Makes the bot quit",
             code: () => {
                 bot.quit();
