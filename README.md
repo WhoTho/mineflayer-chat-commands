@@ -2,120 +2,201 @@
 
 ---
 
-## API
+## Configs
 
-### configs
+##### configs.prefix
 
-#### configs.prefix
+Default: `"#"`
 
-Default: "#"
+The prefix for all commands
 
-#### configs.chatPrefix
+##### configs.chatPrefix
 
-Default: ""
-Chat prefix that the bot uses when chatting
+Default: `""`
 
-Ex.
+Any `bot.chat` that the chatCommand module calls will be prefixed with `configs.chatPrefix`, letting you keep errors and default chats to yourself
 
 ```js
-configs.chatPrefix = "/whisper USERNAME";
-
-/*
-Any bot.chat() that the chatCommand module calls will be
-prefixed with '/whisper USERNAME', letting you keep errors
-and such to yourself
-*/
+configs.chatPrefix = "/whisper MY_USERNAME";
 ```
 
-#### configs.whitelist
+##### configs.whitelist
 
-Default: []
+Default: `[]`
 
 List of usernames that are allowed to run commands
 
-#### configs.blacklist
+```js
+chatCommands.configs.whitelist.push("MY_USERNAME");
+```
 
-Default: []
+##### configs.blacklist
+
+Default: `[]`
 
 List of usernames that are not allowed to run commands
 
-#### configs.useDefaultErrorHandlers
+```js
+chatCommands.configs.blacklist.push("OTHER_USERNAME");
+```
 
-Default: true
+##### configs.useDefaultErrorHandlers
 
-If false, the errors from `runCommand` will be thrown to the main program
+Default: `true`
 
-#### configs.allowBotResponse
+If false, the errors from [`runCommand`](#runcommandusername-message) will be thrown to the main program
 
-Default: true
+```js
+chatCommands.configs.useDefaultErrorHandlers = false;
 
-Wether or not the chatCommand module will be allowed to call `bot.chat()` for internal info logging
+try {
+    chatCommands.runCommand("MY_USERNAME", "#notACommand");
+} catch (err) {
+    console.log(err); // -> UnknownCommandError: Chat command error
+}
+```
 
-### allCommands
+##### configs.allowBotChat
+
+Default: `true`
+
+Wether or not the chatCommand module will use `bot.chat` or `console.log` for displaying info
+
+```js
+chatCommands.configs.allowBotChat = false;
+
+chatCommands.runCommand("MY_USERNAME", "#help"); // -> Bot chat: help message...
+```
+
+---
+
+## Functions & variables
+
+##### allCommands
 
 List of all commands
 
-### addCommand([command](#create-a-command))
+Avoid calling `allCommands.push`, as that will skip checks and the adding of internal info
+
+```js
+const allCommandDescriptions = chatCommands.allCommands.map((command) => command.description);
+```
+
+##### addCommand(command)
+
+command: [`command`](#create-a-command)
 
 Takes in a command and adds it to allCommands
 
-### addCommands([commands](#create-a-command))
+```js
+chatCommands.addCommand({
+    command: "hi",
+    code: () => {
+        bot.chat("Hello!");
+    },
+});
+```
 
-Commands: List of commands
+##### addCommands(commands)
+
+Commands: List of [`commands`](#create-a-command)
 
 Adds the commands to allCommands
 
-### runCommand(username, message)
+```js
+chatCommands.addCommands([
+    {
+        command: "smallTalk",
+        code: () => {
+            bot.chat("Isn't the moon lovely?");
+        },
+    },
+    {
+        command: "bye",
+        code: () => {
+            bot.chat("Goodbye!");
+        },
+    },
+]);
+```
 
-Username: Name of the player who called the command
+##### runCommand(username, message)
 
-Message: Chat message
+username: `String`
+
+message: `String`
 
 Tries to run the message as a command.
 
-Throws unknownCommandError
+Throws errors if `configs.useDefaultErrorHandlers` is `false`
 
-### getCommand(commandName)
+```js
+bot.on("chat", (username, message) => {
+    if (username === bot.username) return;
 
-commandName: String
+    chatCommands.runCommand(username, message);
+});
+```
+
+##### getCommand(name)
+
+name: `String`
+
+Returns: [`command`](#create-a-command)
 
 Finds and returns the command by the command name
 
-### commandNameToString(command)
-
-command: Command
-
-Returns the command name as a formatted string (Runs [argNameToString](<#argNameToString(arg)>))
-
-Ex.
-
 ```js
-const commandName = chatCommands.commandNameToString(chatCommands.allCommands[0]);
-console.log(commandName); // -> "fight [username]"
+const helpCommand = chatCommands.getCommand("help");
 ```
 
-### argNameToString(arg)
+##### getAllNames(command)
 
-arg: argument
+command: [`command`](#create-a-command)
 
-Returns the argument name as a string
+Returns: List of `strings`
 
-Ex.
+Returns all the names of a command (Actual name + aliases)
 
 ```js
-const argName = chatCommands.argNameToString(chatCommands.allCommands[0].args[0]);
-console.log(argName); // -> "[username]"
+chatCommands.getAllNames(helpCommand); // -> ['h', 'help']
+```
+
+##### commandNameToString(command)
+
+command: [`command`](#create-a-command)
+
+Returns: `String`
+
+Returns the command name as a formatted string (Runs [argNameToString](#argnametostringarg))
+
+```js
+const commandName = chatCommands.commandNameToString(helpCommand); // -> "help [command]"
+```
+
+##### argNameToString(arg)
+
+arg: [`argument`](#create-an-argument)
+
+Returns: `String`
+
+Returns the argument name as a formatted string
+
+`<requiredArg> [optionalArg] [...restArg]`
+
+```js
+const argName = chatCommands.argNameToString(chatCommands.allCommands[0].args[0]); // -> "[username]"
 ```
 
 ---
 
 ## Create a command
 
-### command
+##### command
+
+Type: `String`
 
 Name of the command
-
-Ex.
 
 ```js
 {
@@ -123,11 +204,11 @@ Ex.
 }
 ```
 
-### aliases
+##### aliases
+
+Type: List of `strings`
 
 Aliases for the command
-
-Ex.
 
 ```js
 {
@@ -135,11 +216,13 @@ Ex.
 }
 ```
 
-### description
+##### description
+
+Type: `String`
+
+Default: `"No description"`
 
 Description of the command
-
-Ex.
 
 ```js
 {
@@ -147,11 +230,11 @@ Ex.
 }
 ```
 
-### args
+##### args
+
+Type: List of [`arguments`](#create-an-arg)
 
 See [writing an arg](#create-an-arg)
-
-Ex.
 
 ```js
 {
@@ -164,32 +247,51 @@ Ex.
 }
 ```
 
-### code
+##### code(caller, args...)
+
+username: `Object` ( `{ username: "CALLER_USERNAME", message: "#help" }`)
+
+Type: `Function`
 
 The code that is run on command call
 
-Ex.
+```js
+{
+    code: (_, arg1, arg2) => {
+        if (arg1 === "test") console.log(arg2);
+    },
+}
+```
+
+##### onFail(err)
+
+err: `NotEnoughArgsError`, `TooManyArgsError`, or `RuntimeError`
+
+Type: `Function`
+
+Default: `(err) => { throw err }`
+
+By default, this function would just throw the error to either the default handlers or to the main program
+
+Allows you to write custom error messages for specific commands
 
 ```js
 {
-    code: (arg1, arg2) => {
-        console.log("The first argument is", arg1);
-        if (arg2 === "test") {
-            console.log("The second argument was 'test'");
-        }
-    },
+    onFail: (err) => {
+        console.log("Command " + err.command.command + " has failed");
+    };
 }
 ```
 
 ---
 
-## Create an arg
+## Create an argument
 
-### arg
+##### arg
+
+Type: `String`
 
 Name of the argument
-
-Ex.
 
 ```js
 {
@@ -197,13 +299,13 @@ Ex.
 }
 ```
 
-### description
+##### description
 
-Default: "No description"
+Type: `String`
+
+Default: `"No description"`
 
 Description of the argument
-
-Ex.
 
 ```js
 {
@@ -211,13 +313,13 @@ Ex.
 }
 ```
 
-### optional
+##### optional
 
-Default: false
+Type: `Boolean`
+
+Default: `false`
 
 Wether or not the argument is optional
-
-Ex.
 
 ```js
 {
@@ -225,15 +327,13 @@ Ex.
 }
 ```
 
-### isRest
+##### isRest
 
-Default: false
+Type: `Boolean`
 
-Wether or not the argument is a rest argument
+Default: `false`
 
-Takes the rest of the arguments as a list
-
-Ex.
+Wether or not the argument is a rest argument (Takes the rest of the arguments as a list)
 
 ```js
 {
@@ -241,15 +341,17 @@ Ex.
 }
 ```
 
-### testValid
+##### testValid(arg)
+
+arg: `String`, `number`, or `boolean`
+
+Type: `Function`
 
 Default `() => true`
 
 Function to run on the user inputted argument to check if it is valid
 
-If the function returns false or errors, the argument throws a InvalidArgError
-
-Ex.
+If the function returns false or errors, the argument throws an `InvalidArgError`
 
 ```js
 
@@ -257,6 +359,27 @@ Ex.
     testValid: (username) => Object.keys(bot.players).includes(username),
 }
 
+```
+
+##### onFail(err)
+
+err: `InvalidArgumentError`
+
+Type: `Function`
+
+Default: `(err) => { throw err }`
+
+By default, this function would just throw the error to either the default handlers or to the main program
+
+Allows you to write custom error messages for each argument that is invalid
+
+```js
+{
+    onFail: (err) => {
+        console.log("Unknown player:", err.arg);
+        console.log("Possible players:", Object.keys(bot.players).join(", "));
+    };
+}
 ```
 
 ---
@@ -274,8 +397,6 @@ const bot = mineflayer.createBot({
 
 chatCommands.inject(bot);
 
-chatCommands.prefix = ".";
-
 chatCommands.addCommand({
     command: "help",
     aliases: ["h"],
@@ -287,11 +408,11 @@ chatCommands.addCommand({
 
 chatCommands.addCommands([
     {
-        command: "settings",
-        description: "Shows the bot settings",
+        command: "chatConfigs",
+        description: "Shows the chat configs",
         code: () => {
-            for (const key in configs) {
-                bot.chat(`${key}: ${configs[key]}`);
+            for (const key in chatCommands.configs) {
+                bot.chat(`${key}: ${chatCommands.configs[key]}`);
             }
         },
     },
@@ -304,6 +425,10 @@ chatCommands.addCommands([
                 arg: "username",
                 optional: true,
                 testValid: (username) => Object.keys(bot.players).includes(username),
+                onFail: (err) => {
+                    console.log("Unknown player:", err.arg);
+                    console.log("Possible players:", Object.keys(bot.players).join(", "));
+                },
             },
         ],
         code: (username = null) => {
@@ -314,14 +439,6 @@ chatCommands.addCommands([
     {
         command: "quit",
         code: bot.quit,
-    },
-    {
-        command: "whitelist",
-        description: "Add players to the chatCommand whitelist",
-        args: [{ arg: "usernames", isRest: true }],
-        code: (...usernames) => {
-            chatCommands.configs.whitelist.push(...usernames);
-        },
     },
 ]);
 

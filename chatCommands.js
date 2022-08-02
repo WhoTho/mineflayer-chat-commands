@@ -1,8 +1,12 @@
 /*
 Created by @WhoTho#9592
 
-TODO add custom errors for args
-FIXME test the example code
+[x] add custom errors for everything
+[ ] test the example code
+[ ] add error info to readme
+[ ] add new default commands to whitelist
+[ ] test new code
+[ ] add inject to readme
 */
 
 // +------------------------------+
@@ -28,7 +32,7 @@ var configs = {
     whitelist: [],
     blacklist: [],
     useDefaultErrorHandlers: true,
-    allowBotResponse: true,
+    allowBotChat: true,
 };
 
 // +------------------------------+
@@ -83,6 +87,13 @@ const _COMMAND_STRUCTURE = {
         optional: false,
         testValid: (code) => _testType({ code }, "function", "Command property"),
     },
+    onFail: {
+        optional: true,
+        defaultValue: (err) => {
+            throw err;
+        },
+        testValid: () => true,
+    },
     _argInfo: {
         optional: true,
         defaultValue: {},
@@ -114,6 +125,13 @@ const _ARG_STRUCTURE = {
         optional: true,
         defaultValue: () => true,
         testValid: (testValid) => _testType({ testValid }, "function", "Argument property"),
+    },
+    onFail: {
+        optional: true,
+        defaultValue: (err) => {
+            throw err;
+        },
+        testValid: () => true,
     },
 };
 
@@ -194,9 +212,12 @@ function _setArgNumbers(command) {
     }
 
     // Checks if the number of user defined required arguments are the same as the js ones
-    if (numOfRequired !== command.code.length)
-        throw new Error(
-            `Command '${command.command}' has non matching required arguments. Found ${numOfRequired} required arguments from args, found ${command.code.length} required arguments from code function`
+    if (
+        !(numOfRequired === 0 && command.code.length <= 1) &&
+        !(numOfRequired !== 0 && numOfRequired === command.code.length - 1)
+    )
+        throw new StructureError(
+            `Command '${command.command}' has non matching required arguments. Found ${numOfRequired} required arguments from args, found ${command.code.length} required arguments from code function. (Caller username and message is passed to the function)`
         );
 
     command._argInfo = {
@@ -211,16 +232,16 @@ function _setArgNumbers(command) {
 // +------------------------------+
 
 function botChat(message) {
-    if (configs.allowBotResponse) bot.chat(configs.chatPrefix + message);
+    if (configs.allowBotChat) bot.chat(configs.chatPrefix + message);
     else console.log("Bot chat:", message);
 }
 
-function getCommand(commandName) {
-    for (const command of allCommands) {
-        if (command.command === commandName || command.aliases.includes(commandName)) {
-            return command;
-        }
-    }
+function getCommand(name) {
+    return allCommands.find((command) => getAllNames(command).includes(name));
+}
+
+function getAllNames(command) {
+    return command.aliases.concat(command.command);
 }
 
 function commandNameToString(command) {
@@ -261,28 +282,23 @@ function addCommand(command) {
 
     _setArgNumbers(command);
 
-    // Check if a command name or aliases already exist
-    const allCommandNames = command.aliases.concat(command.command);
-    const duplicateCommands = [
-        ...new Set(allCommandNames.map((commandName) => getCommand(commandName)).filter(Boolean)),
-    ]; // TODO: Improve this line
+    // Check if a command name or aliases already exist and discard all commands that have a conflict
+
+    const allCommandNames = getAllNames(command);
+    const duplicateCommands = [...new Set(allCommandNames.map((name) => getCommand(name)).filter(Boolean))];
 
     if (duplicateCommands.length) {
         // Find common names
-        const duplicateCommandNames = duplicateCommands.map((duplicateCommand) => duplicateCommand.command);
-        const allDuplicateCommandNames = [].concat(
-            ...duplicateCommands.map((duplicateCommand) => duplicateCommand.aliases.concat(duplicateCommand.command))
-        ); // TODO: Improve this line
-        const commonNames = allCommandNames.filter((commandName) => allDuplicateCommandNames.includes(commandName));
-
-        const formattedCommonNames = formatStringArray(commandName);
-        const formattedDuplicateCommandNames = formatStringArray(duplicateCommandNames);
+        const duplicateCommandNames = duplicateCommands.map((e) => e.command);
+        const commonNames = duplicateCommands.flatMap(getAllNames).filter((name) => allCommandNames.includes(name));
 
         console.log(
-            `Command '${command.command}' has a naming conflict with ${formattedDuplicateCommandNames} (${formattedCommonNames}). Overwriting...`
+            `Command '${command.command}' has a naming conflict with command(s) ${formatStringArray(
+                duplicateCommandNames
+            )}. Conflicting names: ${formatStringArray(commonNames)}. Overwriting...`
         );
 
-        allCommands = allCommands.filter((otherCommand) => !duplicateCommandNames.includes(otherCommand.command));
+        allCommands = allCommands.filter((command_) => !duplicateCommandNames.includes(command_.command));
     }
 
     allCommands.push(command);
@@ -313,41 +329,50 @@ function _runCommand(username, message) {
     const parsedArgs = _parseArgs(inputArgs);
 
     const errorInfo = {
-        username: username,
-        rawMessage: message,
+        caller: { username, message },
         parsedArgs: parsedArgs,
         command: command,
     };
 
     // Throws a NotEnoughArgsError if the command does not have more enough arguments.
-    if (parsedArgs.length < command._argInfo.required) throw new NotEnoughArgsError(errorInfo);
+    if (parsedArgs.length < command._argInfo.required) {
+        command.onFail(new NotEnoughArgsError(errorInfo));
+        return;
+    }
 
     // Throws TooManyArgsError if the command has more arguments than possible.
-    if (!command._argInfo.hasRest && parsedArgs.length > command._argInfo.required + command._argInfo.optional)
-        throw new TooManyArgsError(errorInfo);
+    if (!command._argInfo.hasRest && parsedArgs.length > command._argInfo.required + command._argInfo.optional) {
+        command.onFail(new TooManyArgsError(errorInfo));
+        return;
+    }
 
     // Tests if all arguments are valid.
     var commandArgIndex = 0;
 
     for (const arg of parsedArgs) {
-        var result = false;
+        var result;
+
         try {
             result = command.args[commandArgIndex].testValid(arg);
         } catch (err) {
-            errorInfo.actualError = err;
+            errorInfo.error = err;
         }
 
-        if (result !== true) throw new InvalidArgError(errorInfo, arg);
+        if (result !== true) {
+            command.args[commandArgIndex].onFail(new InvalidArgError(errorInfo, arg));
+            return;
+        }
 
-        if (commandArgIndex < command.args.length) commandArgIndex++;
+        if (commandArgIndex < command.args.length - 1) commandArgIndex++;
     }
 
     // Tries to run the command.
     try {
-        command.code(...parsedArgs);
+        command.code({ username, message }, ...parsedArgs);
     } catch (err) {
-        errorInfo.actualError = err;
-        throw new RuntimeError(errorInfo);
+        errorInfo.error = err;
+        command.onFail(new RuntimeError(errorInfo));
+        return;
     }
 }
 
@@ -360,7 +385,8 @@ function runCommand(username, message) {
         // default error handlers
         switch (err.constructor) {
             case UnknownCommandError:
-                console.log(`Unknown command: '${err.rawMessage}' by '${err.username}'`);
+                console.log(`Unknown command: '${err.caller.message}' by '${err.caller.username}'`);
+
                 botChat(`Unknown command. Try '${configs.prefix}help' for a list of commands`);
                 break;
 
@@ -384,14 +410,16 @@ function runCommand(username, message) {
 
             case InvalidArgError:
                 console.log(`Invalid arg '${err.arg}' for command '${err.command.command}'`);
-                if (err.actualError) console.log(err.actualError);
+                if (err.error) console.log(err.error);
 
                 botChat(`Invalid arg '${err.arg}'`);
                 break;
 
             case RuntimeError:
                 console.log(`Error while running command '${err.command.command}'`);
-                console.log(err.actualError);
+                console.log(err.error);
+
+                botChat(`Error while running command '${err.command.command}'`);
                 break;
 
             default:
@@ -417,10 +445,14 @@ function _addDefaultCommands() {
                     arg: "command",
                     description: "Name of the command you want info on",
                     optional: true,
-                    testValid: (commandName) => typeof getCommand(commandName) !== "undefined",
+                    testValid: (name) => typeof getCommand(name) !== "undefined",
+                    onFail: (err) => {
+                        console.log(`Unknown command for help message: ${err.parsedArgs[0]}`);
+                        console.log(`Try '${configs.prefix}help' for a list of commands`);
+                    },
                 },
             ],
-            code: (commandName = null) => {
+            code: (_, name = null) => {
                 function logCommandInfo(command) {
                     console.log();
                     console.log(`Command: ${commandNameToString(command)}`);
@@ -437,18 +469,19 @@ function _addDefaultCommands() {
                 }
 
                 // Logs the command info if it is provided
-                if (commandName) {
-                    const command = getCommand(commandName);
+                if (name) {
+                    const command = getCommand(name);
                     logCommandInfo(command);
 
                     botChat(`Command: '${commandNameToString(command)}'`);
+                    if (command.aliases.length) botChat(`Aliases: ${formatStringArray(command.aliases)}`);
                     botChat(`Description: ${command.description}`);
                     return;
                 }
 
                 var commandNameStrings = [];
                 for (const command of allCommands) {
-                    commandNameStrings.push(`'${commandNameToString(command)}'`);
+                    commandNameStrings.push(commandNameToString(command));
                     logCommandInfo(command);
                 }
 
@@ -466,6 +499,87 @@ function _addDefaultCommands() {
                 console.log("Bot quit");
             },
         },
+        {
+            command: "whitelist",
+            description: "Add/remove players to/from the chatCommand whitelist",
+            args: [
+                {
+                    arg: "add|remove",
+                    description: "Wether to 'add' or 'remove' the players from the whitelist",
+                    testValid: (operation) => operation === "add" || operation === "remove",
+                    onFail: (err) => {
+                        console.log(`'operation' argument expected 'add' or 'remove', received '${err.arg}'`);
+
+                        botChat("'operation' argument only accepts 'add' or 'remove'");
+                    },
+                },
+                {
+                    arg: "usernames",
+                    description: "List of usernames",
+                    isRest: true,
+                },
+            ],
+            code: (caller, operation, ...usernames) => {
+                if (operation === "add") {
+                    if (configs.whitelist.length === 0 && !usernames.includes(caller.username)) {
+                        console.log(
+                            `${caller.username} ran 'whitelist add' and was automatically added to the whitelist`
+                        );
+                        configs.whitelist = [caller.username];
+                    }
+
+                    configs.whitelist.push(...usernames);
+                } else {
+                    configs.whitelist = configs.whitelist.filter((username) => !usernames.includes(username));
+
+                    if (configs.whitelist.length !== 0 && usernames.includes(caller.username)) {
+                        console.log(
+                            `${caller.username} ran 'whitelist remove' and was automatically added back to the whitelist`
+                        );
+                        configs.whitelist.push(caller.username);
+                    }
+                }
+
+                console.log(`New whitelist: ${formatStringArray(configs.whitelist)}`);
+            },
+        },
+        {
+            command: "blacklist",
+            description: "Add/remove players to/from the chatCommand blacklist",
+            args: [
+                {
+                    arg: "add|remove",
+                    description: "Wether to 'add' or 'remove' the players from the blacklist",
+                    testValid: (operation) => operation === "add" || operation === "remove",
+                    onFail: (err) => {
+                        console.log(`'operation' argument expected 'add' or 'remove', received '${err.arg}'`);
+
+                        botChat("'operation' argument only accepts 'add' or 'remove'");
+                    },
+                },
+                {
+                    arg: "usernames",
+                    description: "List of usernames",
+                    isRest: true,
+                },
+            ],
+            code: (caller, operation, ...usernames) => {
+                if (operation === "add") {
+                    configs.blacklist.push(...usernames);
+
+                    if (configs.blacklist.length !== 0 && !usernames.includes(caller.username)) {
+                        console.log(
+                            `${caller.username} ran 'blacklist add' and was automatically removed from the blacklist additions`
+                        );
+                        configs.blacklist = configs.blacklist.filter((username) => username !== caller.username);
+                    }
+                } else {
+                    configs.blacklist = configs.blacklist.filter((username) => !usernames.includes(username));
+                }
+
+                console.log(`New blacklist: ${formatStringArray(configs.blacklist)}`);
+            },
+        },
     ]);
 }
 
@@ -478,6 +592,7 @@ module.exports = {
     addCommands,
     runCommand,
     getCommand,
+    getAllNames,
     commandNameToString,
     argNameToString,
     inject,

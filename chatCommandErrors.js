@@ -12,17 +12,20 @@ class ChatCommandError extends Error {
         super(message);
 
         this.name = this.constructor.name;
-        this.username = errorInfo.username;
-        this.rawMessage = errorInfo.rawMessage;
+        this.caller = {
+            username: errorInfo.caller.username,
+            message: errorInfo.caller.message,
+        };
+
         this.parsedArgs = errorInfo.parsedArgs;
         this.command = errorInfo.command;
-        this.actualError = errorInfo.actualError;
+        this.error = errorInfo.error;
     }
 }
 
 class UnknownCommandError extends ChatCommandError {
-    constructor(username, rawMessage) {
-        super({ username, rawMessage });
+    constructor(username, message, message_) {
+        super({ caller: { username, message } }, message_);
     }
 }
 
@@ -31,8 +34,8 @@ class NotEnoughArgsError extends ChatCommandError {}
 class TooManyArgsError extends ChatCommandError {}
 
 class InvalidArgError extends ChatCommandError {
-    constructor(errorInfo, arg) {
-        super(errorInfo);
+    constructor(errorInfo, arg, message) {
+        super(errorInfo, message);
 
         this.arg = arg;
     }

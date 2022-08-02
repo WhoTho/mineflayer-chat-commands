@@ -8,17 +8,24 @@ function inGameMessage(username, message) {
 // Simulate the bot with basic functions
 const bot = {
     chat: (message) => inGameMessage("chatBot", message),
-    quit: () => null,
 };
 
 chatCommands.inject(bot);
 
+chatCommands.addCommand({
+    command: "a",
+    args: [{ arg: "a" }],
+    code: (_, a) => {
+        console.log(a);
+    },
+});
+
 testCommands = [
-    ["aaaaa", "#h"],
-    ["bbbbb", "#h h l"],
+    ["aaaaa", "#whitelist a hello"],
+    ["bbbbb", "#h"],
     ["ccccc", ".asd"],
-    ["ddddd", "#lol"],
-    ["eeeee", "#exit"],
+    ["ddddd", "#a"],
+    ["eeeee", "help"],
     // ["fffff", "#asd"],
     // ["ggggg", "#asd"],
     // ["hhhhh", "#asd"],

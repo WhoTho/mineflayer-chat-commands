@@ -1,3 +1,4 @@
+// Turn a list of strings into 'e1', 'e2', and 'e3'
 function formatStringArray(list, joinWord = "and") {
     // Checks if it needs to add the ''
     const formattedStrings = list.map((e) => (e.startsWith("'") ? e : `'${e}'`));
