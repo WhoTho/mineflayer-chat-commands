@@ -4,13 +4,13 @@
 
 ## Configs
 
-##### configs.prefix
+#### configs.prefix
 
 Default: `"#"`
 
 The prefix for all commands
 
-##### configs.chatPrefix
+#### configs.chatPrefix
 
 Default: `""`
 
@@ -20,7 +20,7 @@ Any `bot.chat` that the chatCommand module calls will be prefixed with `configs.
 configs.chatPrefix = "/whisper MY_USERNAME";
 ```
 
-##### configs.whitelist
+#### configs.whitelist
 
 Default: `[]`
 
@@ -30,7 +30,7 @@ List of usernames that are allowed to run commands
 chatCommands.configs.whitelist.push("MY_USERNAME");
 ```
 
-##### configs.blacklist
+#### configs.blacklist
 
 Default: `[]`
 
@@ -40,7 +40,7 @@ List of usernames that are not allowed to run commands
 chatCommands.configs.blacklist.push("OTHER_USERNAME");
 ```
 
-##### configs.useDefaultErrorHandlers
+#### configs.useDefaultErrorHandlers
 
 Default: `true`
 
@@ -56,7 +56,7 @@ try {
 }
 ```
 
-##### configs.allowBotChat
+#### configs.allowBotChat
 
 Default: `true`
 
@@ -72,7 +72,7 @@ chatCommands.runCommand("MY_USERNAME", "#help"); // -> Bot chat: help message...
 
 ## Functions & variables
 
-##### allCommands
+#### allCommands
 
 List of all commands
 
@@ -82,7 +82,7 @@ Avoid calling `allCommands.push`, as that will skip checks and the adding of int
 const allCommandDescriptions = chatCommands.allCommands.map((command) => command.description);
 ```
 
-##### addCommand(command)
+#### addCommand(command)
 
 command: [`command`](#create-a-command)
 
@@ -97,7 +97,7 @@ chatCommands.addCommand({
 });
 ```
 
-##### addCommands(commands)
+#### addCommands(commands)
 
 Commands: List of [`commands`](#create-a-command)
 
@@ -120,7 +120,7 @@ chatCommands.addCommands([
 ]);
 ```
 
-##### runCommand(username, message)
+#### runCommand(username, message)
 
 username: `String`
 
@@ -138,7 +138,7 @@ bot.on("chat", (username, message) => {
 });
 ```
 
-##### getCommand(name)
+#### getCommand(name)
 
 name: `String`
 
@@ -150,7 +150,7 @@ Finds and returns the command by the command name
 const helpCommand = chatCommands.getCommand("help");
 ```
 
-##### getAllNames(command)
+#### getAllNames(command)
 
 command: [`command`](#create-a-command)
 
@@ -162,7 +162,7 @@ Returns all the names of a command (Actual name + aliases)
 chatCommands.getAllNames(helpCommand); // -> ['h', 'help']
 ```
 
-##### commandNameToString(command)
+#### commandNameToString(command)
 
 command: [`command`](#create-a-command)
 
@@ -174,7 +174,7 @@ Returns the command name as a formatted string (Runs [argNameToString](#argnamet
 const commandName = chatCommands.commandNameToString(helpCommand); // -> "help [command]"
 ```
 
-##### argNameToString(arg)
+#### argNameToString(arg)
 
 arg: [`argument`](#create-an-argument)
 
@@ -192,7 +192,7 @@ const argName = chatCommands.argNameToString(chatCommands.allCommands[0].args[0]
 
 ## Create a command
 
-##### command
+#### command
 
 Type: `String`
 
@@ -204,7 +204,7 @@ Name of the command
 }
 ```
 
-##### aliases
+#### aliases
 
 Type: List of `strings`
 
@@ -216,7 +216,7 @@ Aliases for the command
 }
 ```
 
-##### description
+#### description
 
 Type: `String`
 
@@ -230,7 +230,7 @@ Description of the command
 }
 ```
 
-##### args
+#### args
 
 Type: List of [`arguments`](#create-an-arg)
 
@@ -247,7 +247,7 @@ See [writing an arg](#create-an-arg)
 }
 ```
 
-##### code(caller, args...)
+#### code(caller, args...)
 
 username: `Object` ( `{ username: "CALLER_USERNAME", message: "#help" }`)
 
@@ -263,7 +263,7 @@ The code that is run on command call
 }
 ```
 
-##### onFail(err)
+#### onFail(err)
 
 err: `NotEnoughArgsError`, `TooManyArgsError`, or `RuntimeError`
 
@@ -287,7 +287,7 @@ Allows you to write custom error messages for specific commands
 
 ## Create an argument
 
-##### arg
+#### arg
 
 Type: `String`
 
@@ -299,7 +299,7 @@ Name of the argument
 }
 ```
 
-##### description
+#### description
 
 Type: `String`
 
@@ -313,7 +313,7 @@ Description of the argument
 }
 ```
 
-##### optional
+#### optional
 
 Type: `Boolean`
 
@@ -327,7 +327,7 @@ Wether or not the argument is optional
 }
 ```
 
-##### isRest
+#### isRest
 
 Type: `Boolean`
 
@@ -341,7 +341,7 @@ Wether or not the argument is a rest argument (Takes the rest of the arguments a
 }
 ```
 
-##### testValid(arg)
+#### testValid(arg)
 
 arg: `String`, `number`, or `boolean`
 
@@ -361,7 +361,7 @@ If the function returns false or errors, the argument throws an `InvalidArgError
 
 ```
 
-##### onFail(err)
+#### onFail(err)
 
 err: `InvalidArgumentError`
 
