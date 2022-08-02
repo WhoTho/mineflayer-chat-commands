@@ -226,7 +226,7 @@ Description of the command
 
 ```js
 {
-    description: "Makes the bot fight a specified player or the closest one";
+    description: "Makes the bot fight a specified player or the closest one",
 }
 ```
 
@@ -279,7 +279,7 @@ Allows you to write custom error messages for specific commands
 {
     onFail: (err) => {
         console.log("Command " + err.command.command + " has failed");
-    };
+    },
 }
 ```
 
@@ -337,7 +337,7 @@ Wether or not the argument is a rest argument (Takes the rest of the arguments a
 
 ```js
 {
-    isRest: true;
+    isRest: true,
 }
 ```
 
@@ -378,7 +378,7 @@ Allows you to write custom error messages for each argument that is invalid
     onFail: (err) => {
         console.log("Unknown player:", err.arg);
         console.log("Possible players:", Object.keys(bot.players).join(", "));
-    };
+    },
 }
 ```
 
