@@ -8,6 +8,7 @@ function inGameMessage(username, message) {
 // Simulate the bot with basic functions
 const bot = {
     chat: (message) => inGameMessage("chatBot", message),
+    quit: () => null,
 };
 
 chatCommands.inject(bot);

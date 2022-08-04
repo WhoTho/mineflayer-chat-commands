@@ -388,7 +388,7 @@ Allows you to write custom error messages for each argument that is invalid
 
 ```js
 const mineflayer = require("mineflayer");
-const chatCommands = require("./ChatCommands.js");
+const chatCommands = require("./chatCommands.js");
 
 const bot = mineflayer.createBot({
     username: "chatCommands",
@@ -431,7 +431,7 @@ chatCommands.addCommands([
                 },
             },
         ],
-        code: (username = null) => {
+        code: (_, username = null) => {
             if (username) bot.pvp.attack(bot.players[username].entity);
             else bot.pvp.attack(bot.nearestEntity());
         },

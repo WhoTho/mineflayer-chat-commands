@@ -1,0 +1,25 @@
+{
+  "name": "mineflayer-chat-commands",
+  "version": "1.0.0",
+  "description": "Easily add chat commands for a mineflayer bot",
+  "main": "chatCommands.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WhoTho/mineflayer-chat-commands.git"
+  },
+  "keywords": [
+    "mineflayer"
+  ],
+  "author": "WhoTho whotho06@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/WhoTho/mineflayer-chat-commands/issues"
+  },
+  "homepage": "https://github.com/WhoTho/mineflayer-chat-commands#readme"
+}
