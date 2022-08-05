@@ -1,9 +1,20 @@
-/*
-Created by @WhoTho#9592
+/**
+ * Created Date: Jul 31 2022, 10:30:23 AM
+ * Author: @WhoTho#9592 whotho06@gmail.com
+ * -----
+ * Last Modified: Aug 04 2022, 08:26:24 PM
+ * Modified By: @WhoTho#9592
+ * -----
+ * CHANGE LOG:
+ * Date                        | Comments
+ * ----------------------------+---------------------------------------------
+ * Aug 04 2022, 08:20:59 PM    | console support
+ * Aug 04 2022, 06:45:31 PM    | Changed file name from chatCommandErrors to errors
+ */
 
-lol i don't know how to make a good error system
-
-*/
+/* -------------------------------------------------------------------------- */
+/*                                   ERRORS                                   */
+/* -------------------------------------------------------------------------- */
 
 class StructureError extends Error {}
 
@@ -15,6 +26,7 @@ class ChatCommandError extends Error {
         this.caller = {
             username: errorInfo.caller.username,
             message: errorInfo.caller.message,
+            isConsole: errorInfo.caller.isConsole,
         };
 
         this.parsedArgs = errorInfo.parsedArgs;
@@ -24,10 +36,12 @@ class ChatCommandError extends Error {
 }
 
 class UnknownCommandError extends ChatCommandError {
-    constructor(username, message, message_) {
-        super({ caller: { username, message } }, message_);
+    constructor(username, message, isConsole, message_) {
+        super({ caller: { username, message, isConsole } }, message_);
     }
 }
+
+class AccessDeniedError extends ChatCommandError {}
 
 class NotEnoughArgsError extends ChatCommandError {}
 
@@ -50,4 +64,5 @@ module.exports = {
     InvalidArgError,
     RuntimeError,
     StructureError,
+    AccessDeniedError,
 };

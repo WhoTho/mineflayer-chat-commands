@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/WhoTho/mineflayer-chat-commands/issues"
   },
-  "homepage": "https://github.com/WhoTho/mineflayer-chat-commands#readme"
+  "homepage": "https://github.com/WhoTho/mineflayer-chat-commands#readme",
+  "dependencies": {
+    "minecraft-data": "^3.9.1"
+  }
 }

@@ -1,43 +1,38 @@
-const chatCommands = require("../chatCommands.js");
+const chatCommands = require("../src/index.js");
+const mineflayer = require("mineflayer");
 
 // Show "in-game" messages
-function inGameMessage(username, message) {
+function showInGameMessage(username, message) {
     console.log(`\x1b[;30m<${username}> ${message}\x1b[0m`);
 }
 
-// Simulate the bot with basic functions
-const bot = {
-    chat: (message) => inGameMessage("chatBot", message),
-    quit: () => null,
-};
-
-chatCommands.inject(bot);
-
-chatCommands.addCommand({
-    command: "a",
-    args: [{ arg: "a" }],
-    code: (_, a) => {
-        console.log(a);
-    },
+const bot = mineflayer.createBot({
+    username: "testBot",
+    host: "localhost",
+    version: "1.8.9",
 });
 
-testCommands = [
-    ["aaaaa", "#whitelist a hello"],
-    ["bbbbb", "#h"],
-    ["ccccc", ".asd"],
-    ["ddddd", "#a"],
-    ["eeeee", "help"],
-    // ["fffff", "#asd"],
-    // ["ggggg", "#asd"],
-    // ["hhhhh", "#asd"],
-    // ["iiiii", "#asd"],
-    // ["jjjjj", "#asd"],
-    // ["kkkkk", "#asd"],
-    // ["lllll", "#asd"],
-    // ["mmmmm", "#asd"],
-];
+chatCommands.allowConsole = true;
+bot.loadPlugin(chatCommands);
 
-testCommands.forEach(([username, message]) => {
-    inGameMessage(username, message);
-    chatCommands.runCommand(username, message);
+bot.once("chat_commands_ready", () => {
+    bot.chatCommands.addCommand({
+        command: "a",
+        args: [{ arg: "a" }],
+        code: (_, a) => {
+            console.log(a);
+        },
+    });
+});
+
+bot.on("chat", (username, message) => {
+    if (username === bot.username) return;
+
+    showInGameMessage(username, message);
+
+    bot.chatCommands.runCommand(username, message);
+});
+
+bot.on("spawn", () => {
+    console.log("Bot spawned");
 });
