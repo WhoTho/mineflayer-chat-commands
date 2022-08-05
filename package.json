@@ -2,7 +2,7 @@
     "name": "mineflayer-chat-commands",
     "version": "1.0.2",
     "description": "Easily add chat commands for a mineflayer bot",
-    "main": "scr/index.js",
+    "main": "src/index.js",
     "directories": {
         "test": "tests"
     },

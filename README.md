@@ -46,7 +46,7 @@
 
 ## Installation
 
-ttttttttttttttt
+`npm i mineflayer-chat-commands`
 
 ---
 
