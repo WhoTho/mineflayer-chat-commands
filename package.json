@@ -14,15 +14,14 @@
         "url": "git+https://github.com/WhoTho/mineflayer-chat-commands.git"
     },
     "keywords": [
-        "mineflayer"
+        "mineflayer",
+        "chat",
+        "commands"
     ],
     "author": "WhoTho whotho06@gmail.com",
     "license": "ISC",
     "bugs": {
         "url": "https://github.com/WhoTho/mineflayer-chat-commands/issues"
     },
-    "homepage": "https://github.com/WhoTho/mineflayer-chat-commands#readme",
-    "dependencies": {
-        "minecraft-data": "^3.9.1"
-    }
+    "homepage": "https://github.com/WhoTho/mineflayer-chat-commands#readme"
 }

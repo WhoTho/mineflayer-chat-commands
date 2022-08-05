@@ -52,7 +52,7 @@ ttttttttttttttt
 
 ## General info
 
-**NOTE**
+NOTE:
 
 A similar plugin also exists: [mineflayer-cmd](https://github.com/PrismarineJS/mineflayer-cmd)
 
@@ -89,7 +89,19 @@ this.error = Error; // Thrown errors (Set during RuntimeError and InvalidArgErro
 
 #### Default commands
 
-tttttttttttttt
+-   help [command]
+    -   Aliases: h
+    -   Description: Displays the help message
+-   quit
+    -   Aliases: exit
+    -   Description: Makes the bot quit
+-   whitelist <add|remove> [...usernames]
+    -   Description: Add/remove players to/from the chatCommand whitelist
+-   blacklist <add|remove> [...usernames]
+    -   Description: Add/remove players to/from the chatCommand blacklist
+-   code [...code]
+    -   Console only: true
+    -   Description: Runs code from the console
 
 ---
 
@@ -101,7 +113,7 @@ Default: `False`
 
 Wether to take console input as commands (does not require command prefix)
 
-Set value before loading the plugin
+Set the value before loading the plugin
 
 ```js
 const chatCommands = require("mineflayer-chat-commands");

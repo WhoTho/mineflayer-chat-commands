@@ -2,12 +2,13 @@
  * Created Date: Jul 31 2022, 10:30:23 AM
  * Author: @WhoTho#9592 whotho06@gmail.com
  * -----
- * Last Modified: Aug 05 2022, 12:13:16 AM
+ * Last Modified: Aug 05 2022, 10:09:12 AM
  * Modified By: @WhoTho#9592
  * -----
  * CHANGE LOG:
  * Date                        | Comments
  * ----------------------------+---------------------------------------------
+ * Aug 05 2022, 10:08:51 AM    | Added consoleOnly functionality to help command
  * Aug 04 2022, 11:40:28 PM    | Changed emit name
  * Aug 04 2022, 08:21:51 PM    | consoleOnly support
  * Aug 04 2022, 07:10:30 PM    | Added console interface
@@ -338,6 +339,7 @@ function inject(bot) {
                         console.log();
                         console.log(`Command: ${commandNameToString(command)}`);
                         if (command.aliases.length) console.log(`Aliases: ${formatStringArray(command.aliases)}`);
+                        if (command.consoleOnly) console.log("Console only: true");
                         console.log(`Description: ${command.description}`);
 
                         for (const arg of command.args) {
@@ -362,7 +364,7 @@ function inject(bot) {
 
                     var commandNameStrings = [];
                     for (const command of allCommands) {
-                        commandNameStrings.push(commandNameToString(command));
+                        if (!command.consoleOnly) commandNameStrings.push(commandNameToString(command));
                         logCommandInfo(command);
                     }
 
