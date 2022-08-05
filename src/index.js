@@ -2,12 +2,13 @@
  * Created Date: Jul 31 2022, 10:30:23 AM
  * Author: @WhoTho#9592 whotho06@gmail.com
  * -----
- * Last Modified: Aug 04 2022, 11:30:38 PM
+ * Last Modified: Aug 05 2022, 12:13:16 AM
  * Modified By: @WhoTho#9592
  * -----
  * CHANGE LOG:
  * Date                        | Comments
  * ----------------------------+---------------------------------------------
+ * Aug 04 2022, 11:40:28 PM    | Changed emit name
  * Aug 04 2022, 08:21:51 PM    | consoleOnly support
  * Aug 04 2022, 07:10:30 PM    | Added console interface
  */
@@ -27,7 +28,7 @@ const { testType, testAndCreateValidStructure, COMMAND_STRUCTURE, ARG_STRUCTURE 
 const { formatStringArray } = require("./utils.js");
 
 function inject(bot) {
-    // Opens console interface allowed
+    // Opens console interface if allowed
     if (inject.allowConsole) require("./console")(runCommand);
 
     /* -------------------------------------------------------------------------- */
@@ -484,7 +485,7 @@ function inject(bot) {
     addDefaultCommands();
 
     setTimeout(() => {
-        bot.emit("chat_commands_ready");
+        bot.emit("chatCommands:ready");
     }, 0);
 }
 

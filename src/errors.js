@@ -2,7 +2,7 @@
  * Created Date: Jul 31 2022, 10:30:23 AM
  * Author: @WhoTho#9592 whotho06@gmail.com
  * -----
- * Last Modified: Aug 04 2022, 08:26:24 PM
+ * Last Modified: Aug 05 2022, 12:22:02 AM
  * Modified By: @WhoTho#9592
  * -----
  * CHANGE LOG:
@@ -59,10 +59,10 @@ class RuntimeError extends ChatCommandError {}
 
 module.exports = {
     UnknownCommandError,
+    AccessDeniedError,
     NotEnoughArgsError,
     TooManyArgsError,
     InvalidArgError,
     RuntimeError,
     StructureError,
-    AccessDeniedError,
 };

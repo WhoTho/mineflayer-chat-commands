@@ -15,7 +15,7 @@ const bot = mineflayer.createBot({
 chatCommands.allowConsole = true;
 bot.loadPlugin(chatCommands);
 
-bot.once("chat_commands_ready", () => {
+bot.once("chatCommands:ready", () => {
     bot.chatCommands.addCommand({
         command: "a",
         args: [{ arg: "a" }],
