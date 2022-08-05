@@ -6,7 +6,6 @@
   - [Installation](#installation)
   - [General info](#general-info)
       - ["chatCommands:ready"](#chatcommandsready)
-      - [Console](#console)
       - [Errors](#errors)
       - [Default commands](#default-commands)
   - [Configs](#configs)
@@ -53,6 +52,10 @@ ttttttttttttttt
 
 ## General info
 
+**NOTE**
+
+A similar plugin also exists: [mineflayer-cmd](https://github.com/PrismarineJS/mineflayer-cmd)
+
 #### "chatCommands:ready"
 
 Event fired once when you can start adding commands
@@ -60,10 +63,6 @@ Event fired once when you can start adding commands
 ```js
 bot.once("chatCommands:ready", addAllCommands);
 ```
-
-#### Console
-
-ttttttttttttttt
 
 #### Errors
 
@@ -75,7 +74,7 @@ ttttttttttttttt
 -   `RuntimeError`: An error occurred while running the command code
 -   `StructureError`: An invalid command structure was provided
 
-Info with each function:
+Info with each error:
 
 ```js
 this.caller = {
@@ -136,7 +135,7 @@ Default: `[]`
 List of usernames that are allowed to run commands
 
 ```js
-chatCommands.configs.whitelist.push("MY_USERNAME");
+bot.chatCommands.configs.whitelist.push("MY_USERNAME");
 ```
 
 #### configs.blacklist
@@ -146,7 +145,7 @@ Default: `[]`
 List of usernames that are not allowed to run commands
 
 ```js
-chatCommands.configs.blacklist.push("OTHER_USERNAME");
+bot.chatCommands.configs.blacklist.push("OTHER_USERNAME");
 ```
 
 #### configs.useDefaultErrorHandlers
@@ -156,10 +155,10 @@ Default: `true`
 If false, the errors from [`runCommand`](#runcommandusername-message) will be thrown to the main program
 
 ```js
-chatCommands.configs.useDefaultErrorHandlers = false;
+bot.chatCommands.configs.useDefaultErrorHandlers = false;
 
 try {
-    chatCommands.runCommand("MY_USERNAME", "#notACommand");
+    bot.chatCommands.runCommand("MY_USERNAME", "#notACommand");
 } catch (err) {
     console.log(err); // -> UnknownCommandError: Chat command error
 }
@@ -172,9 +171,9 @@ Default: `true`
 Wether or not the chatCommand plugin will use `bot.chat` or `console.log` for displaying info
 
 ```js
-chatCommands.configs.allowBotChat = false;
+bot.chatCommands.configs.allowBotChat = false;
 
-chatCommands.runCommand("MY_USERNAME", "#help"); // -> Bot chat: help message...
+bot.chatCommands.runCommand("MY_USERNAME", "#help"); // -> Bot chat: help message...
 ```
 
 ---
