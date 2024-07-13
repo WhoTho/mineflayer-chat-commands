@@ -181,6 +181,21 @@ function inject(bot) {
         commands.map(addCommand);
     }
 
+    function parseTokens(input) {
+        const tokens = [];
+
+        const regex = /([^\s"']+)|"(?:[^"\\]|\\.)*"|'([^']*)'/g;
+        let match;
+
+        do {
+            match = regex.exec(input);
+            if (match) tokens.push(match[3] || match[2] || match[1]);
+        }
+        while (match);
+
+        return tokens;
+    }
+
     function processCommand(username, message, isConsole = false) {
         // Checks wether the command request is valid
         if (!isConsole) {
@@ -192,7 +207,7 @@ function inject(bot) {
             message = message.substring(configs.prefix.length);
         }
 
-        const [inputCommand, ...inputArgs] = message.split(" ");
+        const [inputCommand, ...inputArgs] = parseTokens(message);
 
         // Goes through all known commands and tries to run the matching one
         const command = getCommand(inputCommand);
